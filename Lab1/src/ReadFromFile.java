@@ -1,8 +1,9 @@
-import java.io.FileWriter;
+import java.io.BufferedReader;
+import java.io.FileReader;
 import java.io.IOException;  // Import the IOException class to handle errors
 
-public class WriteToFile {
-    public static void main(String[] args, int type) {
+public class ReadFromFile {
+    public static void main(int type) {
         try {
             String filename = "firstWay.txt";
             switch(type) {
@@ -10,12 +11,12 @@ public class WriteToFile {
                 case 2: filename = "secondWay.txt"; break;
                 case 3: filename = "thirdWay.txt"; break;
             }
-            FileWriter myWriter = new FileWriter(filename);
-            for (int i = 0; i < args.length; i++) {
-                myWriter.write(args[i]);
+            BufferedReader br = new BufferedReader(new FileReader(filename));
+            for (int i = 0; i < 10000; i++) {
+                System.out.println(br.readLine());
             }
-            myWriter.close();
-            System.out.println("Successfully wrote to the file.");
+            br.close();
+            System.out.println("Successfully read from file.");
         } catch (IOException e) {
             System.out.println("An error occurred.");
             e.printStackTrace();
