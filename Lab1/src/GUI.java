@@ -10,7 +10,8 @@ public class GUI implements ActionListener {
     private JLabel lambdaLabel;
     private JLabel alphaLabel;
     private JLabel omegaLabel;
-    private JLabel aLabel;
+    private JLabel zLabel;
+    private JLabel bLabel;
     private JLabel cLabel;
     private JFrame frame;
     private JButton button;
@@ -18,14 +19,15 @@ public class GUI implements ActionListener {
     private JTextField lambda;
     private JTextField alpha;
     private JTextField omega;
-    private JTextField a;
+    private JTextField z0;
+    private JTextField b;
     private JTextField c;
 
     public GUI() {
 
         JFrame frame = new JFrame();
 
-        button = new JButton("Just do it!");
+        button = new JButton("Generate");
         button.addActionListener(this);
         button.setBounds(100, 20, 165, 25);
 
@@ -35,28 +37,33 @@ public class GUI implements ActionListener {
         alpha.setBounds(100, 20, 165, 25);
         omega = new JTextField(6);
         omega.setBounds(100, 20, 165, 25);
-        a = new JTextField(6);
-        a.setBounds(100, 20, 165, 25);
+        z0 = new JTextField(6);
+        z0.setBounds(100, 20, 165, 25);
+        b = new JTextField(6);
+        b.setBounds(100, 20, 165, 25);
         c = new JTextField(6);
         c.setBounds(100, 20, 165, 25);
 
         lambdaLabel = new JLabel("Enter lambda");
         alphaLabel = new JLabel("Enter alpha");
         omegaLabel = new JLabel("Enter omega");
-        aLabel = new JLabel("Enter aLabel");
-        cLabel = new JLabel("Enter cLabel");
+        zLabel = new JLabel("Enter Z0");
+        bLabel = new JLabel("Enter b");
+        cLabel = new JLabel("Enter c");
 
         panel = new JPanel();
-        panel.setBorder(BorderFactory.createEmptyBorder(30, 30, 10, 30));
-        panel.setLayout(new GridLayout(6, 2 ));
+        panel.setBorder(BorderFactory.createEmptyBorder(60, 60, 20, 60));
+        panel.setLayout(new GridLayout(8, 2, 20, 5));
         panel.add(lambdaLabel);
         panel.add(lambda);
         panel.add(alphaLabel);
         panel.add(alpha);
         panel.add(omegaLabel);
         panel.add(omega);
-        panel.add(aLabel);
-        panel.add(a);
+        panel.add(zLabel);
+        panel.add(z0);
+        panel.add(bLabel);
+        panel.add(b);
         panel.add(cLabel);
         panel.add(c);
         panel.add(button);
@@ -79,7 +86,8 @@ public class GUI implements ActionListener {
             double lambdaValue = Double.parseDouble(lambda.getText());
             double alphaValue = Double.parseDouble(alpha.getText());
             double omegaValue = Double.parseDouble(omega.getText());
-            double aValue = Double.parseDouble(a.getText());
+            double zValue = Double.parseDouble(z0.getText());
+            double bValue = Double.parseDouble(b.getText());
             double cValue = Double.parseDouble(c.getText());
 
             File firstWay = new File("firstWay.txt");
@@ -99,10 +107,10 @@ public class GUI implements ActionListener {
                 }
                 if (file.createNewFile()) {
                     System.out.println("File created: " + file.getName());
-                    Logic.main(i, lambdaValue, alphaValue, omegaValue, aValue, cValue);
+                    Logic.main(i, lambdaValue, alphaValue, omegaValue, zValue, bValue, cValue);
                 } else {
                     System.out.println("File already exists.");
-                    Logic.main(i, lambdaValue, alphaValue, omegaValue, aValue, cValue);
+                    Logic.main(i, lambdaValue, alphaValue, omegaValue, zValue, bValue, cValue);
                 }
             }
         } catch (IOException exception) {

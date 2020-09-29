@@ -5,49 +5,196 @@ import java.awt.EventQueue;
 import java.awt.Graphics;
 import java.awt.Graphics2D;
 import java.awt.geom.Rectangle2D;
+import java.util.Arrays;
 import java.util.Map;
 import java.util.TreeMap;
 import javax.swing.JFrame;
 import javax.swing.JPanel;
 import javax.swing.JScrollPane;
 
+
+
 public class Histogram {
 
-    public static void main() {
+    public static void main(double[] arr, String name, double lambda, double alpha, double omega, double z0, double b, double c) {
         EventQueue.invokeLater(new Runnable() {
             @Override
             public void run() {
-                new Histogram();
+                new Histogram(arr, name, lambda, alpha, omega, z0, b, c);
             }
         });
     }
 
-    public Histogram() {
-        // For this example, I just randomised some data, you would
-        // Need to load it yourself...
-        int width = 256;
-        int height = 256;
+    public static long factorial(int n) {
+        long fact = 1;
+        for (int i = 1; i <= n; i++) {
+             fact *= i;
+        }
+        return fact;
+    }
+
+    private double min;
+    private double max;
+    private double middle = 0;
+
+    private double calcXiSquareElem(double ni, double npT) {
+        return Math.pow((ni - npT), 2) / npT;
+    }
+
+    public Histogram(double[] arr, String name, double lambda, double alpha, double omega, double z0, double b, double c) {
+        final int MY_CONSTANT= 6;
+
+        // Calc min
+         for (int i = 0; i < arr.length; i++) {
+             if (i == 0) {
+                 this.min = arr[i];
+             } else {
+                 if (arr[i] < this.min) {
+                     this.min = arr[i];
+                 }
+             }
+         }
+        // Calc max
+        for (int i = 0; i < arr.length; i++) {
+            if (i == 0) {
+                this.max = arr[i];
+            }
+            if (arr[i] > this.max) {
+                this.max = arr[i];
+            }
+        }
+        // Calc middle
+        double sum = 0;
+        for (int i = 0; i < arr.length; i++) {
+            sum += arr[i];
+        }
+        middle = sum / 10000;
+
+        // calc frequencies
+        double step = (max - min ) / MY_CONSTANT;
+        System.out.println("step: " + step);
+        int[] freq = new int[MY_CONSTANT - 1];
+        Arrays.fill(freq, 0);
+        for (int i = 0; i < arr.length; i++) {
+            for(int j = 0; j < freq.length;j++) {
+                if (arr[i] < this.min + (step * (j + 1))) {
+                    freq[j]++;
+                    break;
+                }
+            }
+        }
+        System.out.println(name);
+        System.out.println("min: "+ min);
+        System.out.println("max: "+ max);
+        for (int i = 0; i < freq.length; i++) {
+            System.out.println((i + 1) + " : " + freq[i]);
+        }
+        System.out.println("middle: "+ middle);
+
+        // Calc dispersion
+        double XN_sum = 0;
+        double X2N_sum = 0;
+        int[] n = new int[freq.length];
+        for (int i = 0; i < freq.length; i++) {
+            if (i == 0){
+                n[i] = freq[i];
+            }
+            else {
+                n[i] = n[i - 1] + freq[i];
+            }
+        }
+        for (int i = 0; i < freq.length; i++) {
+            double x = this.min + step * i + step / 2;
+            System.out.println("x: "+ x);
+            System.out.println("n: "+ n[i]);
+            double XN = x * n[i];
+            double X2N = Math.pow(x, 2) * n[i];
+            XN_sum += XN;
+            X2N_sum += X2N;
+        }
+        double dispersion = (X2N_sum / 10000)  - ((Math.pow(XN_sum, 2) / 10000));
+        System.out.println("dispersion: "+ dispersion);
+
+        // Calc Xi ^ 2
+        double[] xiSqElem = new double[freq.length];
+        double XiSquare = 0;
+        switch(name) {
+            case "Exponential distribution": {
+                for (int i = 0; i < freq.length; i++) {
+                    double XiPlus1 = this.min + (step * i + 1);
+                    double Xi = this.min + (step * i);
+                    double Fxi = (1 - Math.exp(-(lambda * XiPlus1)));
+                    double FxiMin1 = (1 - Math.exp(-(lambda * Xi)));
+                    double Pi = Fxi - FxiMin1;
+                    double nPiT = 10000 * Pi;
+                    xiSqElem[i] = calcXiSquareElem(freq[i], nPiT);
+                    //Pi = (Math.pow(dispersion, i) * Math.exp(-dispersion)) / factorial(i);
+                }
+                for (int i = 0; i < freq.length; i++) {
+                    XiSquare += xiSqElem[i];
+                }
+                break;
+            }
+            case "Normal distribution": {
+                for (int i = 0; i < freq.length; i++) {
+                    double XiPlus1 = this.min + (step * i + 1);
+                    double Xi = this.min + (step * i);
+                    double Fxi = (1 / (alpha * Math.sqrt(2 * Math.PI))) * Math.exp(-(Math.pow((XiPlus1 - omega), 2) / (2 * Math.pow(alpha, 2))));
+                    double FxiMin1 = (1 / (alpha * Math.sqrt(2 * Math.PI))) * Math.exp(-(Math.pow((Xi - omega), 2) / (2 * Math.pow(alpha, 2))));
+                    double Pi = Fxi - FxiMin1;
+                    double nPiT = 10000 * Pi;
+                    xiSqElem[i] = calcXiSquareElem(freq[i], nPiT);
+                }
+                for (int i = 0; i < freq.length; i++) {
+                    XiSquare += xiSqElem[i];
+                }
+                break;
+            }
+            case "Even distribution": {
+                for (int i = 0; i < freq.length; i++) {
+                    double Pi = 0.05;
+                    double nPiT = 10000 * Pi;
+                    xiSqElem[i] = calcXiSquareElem(freq[i], nPiT);
+                }
+                for (int i = 0; i < freq.length; i++) {
+                    XiSquare += xiSqElem[i];
+                }
+                break;
+            }
+        }
+
+        System.out.println("Xi^2 = " + XiSquare);
+
+        // Drawing histogram
+        int width = freq.length;
+        int height = freq.length;
         int[][] data = new int[width][height];
-        for (int c = 0; c < height; c++) {
+        for (int k = 0; k < height; k++) {
             for (int r = 0; r < width; r++) {
-                data[c][r] = (int) (256 * Math.random());
+                if (freq[r] == 0) {
+                    data[k][r] = (int) (255);
+                }
+                else {
+                    data[k][r] = (int) ((freq[r] / 10000) * 100);
+                }
             }
         }
         Map<Integer, Integer> mapHistory = new TreeMap<Integer, Integer>();
-        for (int c = 0; c < data.length; c++) {
-            for (int r = 0; r < data[c].length; r++) {
-                int value = data[c][r];
-                int amount = 0;
-                if (mapHistory.containsKey(value)) {
-                    amount = mapHistory.get(value);
-                    amount++;
-                } else {
-                    amount = 1;
-                }
-                mapHistory.put(value, amount);
-            }
+        for (int k = 0; k < data.length; k++) {
+//            for (int r = 0; r < data[c].length; r++) {
+//                int value = data[c][r];
+//                int amount = 0;
+//                if (mapHistory.containsKey(value)) {
+//                    amount = mapHistory.get(value);
+//                    amount++;
+//                } else {
+//                    amount = 1;
+//                }
+//                mapHistory.put(value, amount);
+//            }
+            mapHistory.put(k, freq[k]);
         }
-        JFrame frame = new JFrame("Test");
+        JFrame frame = new JFrame(name);
         frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
         frame.setLayout(new BorderLayout());
         frame.add(new JScrollPane(new Graph(mapHistory)));
@@ -98,7 +245,7 @@ public class Histogram {
                             / (float) maxValue) * height);
                     g2d.setColor(new Color(key, key, key));
                     int yPos = height + yOffset - barHeight;
-                    //Rectangle bar = new Rectangle(xPos, yPos, barWidth, barHeight);
+                    // Rectangle bar = new Rectangle(xPos, yPos, barWidth, barHeight);
                     Rectangle2D bar = new Rectangle2D.Float(
                             xPos, yPos, barWidth, barHeight);
                     g2d.fill(bar);
